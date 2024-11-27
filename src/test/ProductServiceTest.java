@@ -4,18 +4,45 @@ import main.Product;
 import main.ProductService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
-
-import java.util.Optional;
-import org.mockito.Mockito;
-
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Optional;
+import java.io.IOException;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+import java.net.InetSocketAddress;
+import com.sun.net.httpserver.HttpServer;
 // Mock WebServerUrl annotation
 @interface WebServerUrl {
 }
 
 // Mock WebServerExtension class
-class WebServerExtension implements BeforeEachCallback,AfterAllCallback {
+class WebServerExtension implements BeforeEachCallback,AfterAllCallback,BeforeAllCallback {
+
+    private static HttpServer server;
+
+    @Override
+    public void beforeAll(ExtensionContext context) throws Exception {
+        try {
+            // Setting up the server
+            server = HttpServer.create(new InetSocketAddress(8081), 0);
+            server.createContext("/products", exchange -> {
+                String response = "[{\"id\":1,\"name\":\"Laptop\",\"price\":1200}]";
+                exchange.sendResponseHeaders(200, response.getBytes().length);
+                exchange.getResponseBody().write(response.getBytes());
+                exchange.close();
+            });
+            server.start();
+            System.out.println("Web server started successfully on port 8080.");
+        } catch (IOException e) {
+            System.err.println("Failed to start web server.");
+            e.printStackTrace();
+            throw new RuntimeException("Web server setup failed. Aborting tests.");
+        }
+    }
     @Override
     public void beforeEach(ExtensionContext context) {
         System.out.println("WebServerExtension Before Each Callback");
@@ -23,24 +50,54 @@ class WebServerExtension implements BeforeEachCallback,AfterAllCallback {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        System.out.println("WebServerExtension: Tearing down the mock web server...");
+        if (server != null) {
+            server.stop(0); // Gracefully stop the server
+            System.out.println("Web server stopped.");
+        }
     }
+
+
 }
 
 // Mock DatabaseExtension class
-class DatabaseExtension implements BeforeEachCallback, AfterAllCallback {
+class DatabaseExtension implements  AfterAllCallback,BeforeAllCallback {
+    private Connection connection;
+
     @Override
-    public void beforeEach(ExtensionContext context) {
-        System.out.println("DatabaseExtension: Setting up the test database...");
-        // Simulate database setup
+    public void beforeAll(ExtensionContext context) throws Exception
+    {
+        String url = "jdbc:sqlserver://TAYYAB-PC1234;databaseName=AdventureGame;encrypt=true;trustServerCertificate=true";
+        String username = "tks2";
+        String password = "1234";
+
+        try {
+            connection = DriverManager.getConnection(url, username, password);
+            System.out.println("Database connection successful!");
+        } catch (SQLException e) {
+            System.err.println("Database connection failed!");
+            e.printStackTrace();
+            throw new RuntimeException("Failed to connect to the database. Aborting tests.");
+
+        }
     }
 
     @Override
-    public void afterAll(ExtensionContext context) {
+    public void afterAll(ExtensionContext context) throws Exception {
         System.out.println("DatabaseExtension: Cleaning up the test database...");
-        // Simulate database cleanup
+        try {
+            connection.close();
+            System.out.println("Databse Connection Closed");
+        } catch (SQLException e) {
+            System.err.println("Database Connection close error");
+            e.printStackTrace();
+            throw new RuntimeException("Failed to close DB Connection");
+
+        }
+
     }
+
 }
+
 
 // 1. Web Server Extension
 @ExtendWith(WebServerExtension.class)
@@ -68,7 +125,7 @@ class ProductServiceTest {
         Response response = webClient.get(url); // Direct call to WebClient
 
         // Assert that the response status is 200 (OK)
-        assertEquals(200, response.getResponseStatus(), "Response status should be 200.");
+        assertEquals(200, response.getResponseStatus(), "Web Server is not responding properly");
     }
 
     @Test
@@ -93,7 +150,7 @@ class ProductServiceTest {
     }
 }
 
-// 3. TestWatcher Implementation
+
 class CustomTestWatcher implements TestWatcher {
     @Override
     public void testDisabled(ExtensionContext context, Optional<String> reason) {
