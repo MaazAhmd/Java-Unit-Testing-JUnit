@@ -10,7 +10,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CalculatorTimeoutTests {
 
-    private final Calculator calculator = new Calculator();
+    static Calculator calculator;
+
+    @BeforeAll
+    static void setUp() {
+        calculator = new Calculator();
+    }
+
+    // In this file:
+
+    // Timed Tests (using Timeout)
+    // Repeated Tests
 
     @Test
     @Timeout(value = 500, unit = TimeUnit.MILLISECONDS)

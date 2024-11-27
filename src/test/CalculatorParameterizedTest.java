@@ -12,11 +12,17 @@ class CalculatorParameterizedTest {
 
     static Calculator calculator;
 
+    // In this File:
+
+    // Parameterized Tests
+
     @BeforeAll
     static void setUp() {
         calculator = new Calculator();
     }
 
+
+    // Test method to validate the calculator's square functionality using multiple input values.
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5})
     void calculateSquareWithValueSource(int value) {
@@ -60,6 +66,7 @@ class CalculatorParameterizedTest {
         assertEquals(result, calculator.inputField.getText(), "Operation failed");
     }
 
+    // Method that provides the data for the parameterized test:
     private static Object[] operations(){
         return new Object[]{
                 new Object[]{"20",'+',"30","50.0"},
@@ -85,10 +92,11 @@ class CalculatorParameterizedTest {
         assertEquals(expected, calculator.inputField.getText(), "Square calculation failed");
     }
 
+    // Test method to validate calculator square functionality using data from a CSV file.
     @ParameterizedTest
-    @Disabled("No file present right now.")
+//    @Disabled("No file present right now.")
     @CsvFileSource(resources = "/test-data.csv", numLinesToSkip = 1)
-    void testWithCsvFileSource(int value, String expected) {
+    void testWithCsvFileSource(float value, String expected) {
         calculator.clear();
         calculator.appendNumber(String.valueOf(value));
         calculator.square();

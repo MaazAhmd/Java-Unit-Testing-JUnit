@@ -1,6 +1,7 @@
 package test;
 
 import main.Calculator;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -11,7 +12,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CalculatorDynamicTests {
 
-    private final Calculator calculator = new Calculator();
+    static Calculator calculator;
+
+    @BeforeAll
+    static void setUp() {
+        calculator = new Calculator();
+    }
+
+    // In this File:
+
+    // Dynamic Tests
 
     @TestFactory
     List<DynamicTest> dynamicTestsForCalculateTotalMarks() {

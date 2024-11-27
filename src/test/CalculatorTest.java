@@ -17,28 +17,19 @@ class CalculatorTest {
 
     private Calculator calculator;
 
-    // Lifecycle Methods
-    @BeforeAll
-    static void setupAll() {
-        System.out.println("Running setup before all tests...");
-    }
-
     @BeforeEach
     void setUp() {
         calculator = new Calculator();
     }
 
-    @AfterEach
-    void tearDown() {
-        System.out.println("Test executed. Cleaning up...");
-    }
+    // Some more Basic Functions
 
-    @AfterAll
-    static void tearDownAll() {
-        System.out.println("All tests executed. Final cleanup...");
-    }
+    // In this File:
 
-    // Basic Functions
+    // Method Order
+    // Tags
+    // Nested Tests
+
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     @Nested
     @Tag("basic")
